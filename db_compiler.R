@@ -110,6 +110,8 @@ server <- function(input, output, session) {
   
   failed_files <- reactiveVal(character())
   
+  
+  #set maximum file size using the upload option
   options(shiny.maxRequestSize = 500 * 1024^2)
   
   observeEvent(input$folderBtn, {
@@ -128,7 +130,7 @@ server <- function(input, output, session) {
     req(input$dbFile)
     
     if (!is.null(input$dbFile$name) && input$dbFile$name != "") {
-      # Your .db file handling logic goes here
+      # the .db file handling logic 
       file_path <- input$dbFile$datapath
       
       # Update the "Enter Database Name" text box with the selected file name
@@ -140,7 +142,7 @@ server <- function(input, output, session) {
       # Show a message that an existing database file will be used as a base
       shinyalert::shinyalert(
         title = "Existing Database Selected",
-        text = paste("An existing database file has been selected. It will be used as a base for the new database."),
+        text = paste("An existing database file has been selected. It will be used as a foundation for the new database."),
         type = "info"
       )
       
@@ -203,7 +205,7 @@ server <- function(input, output, session) {
     
     # Define column names
     column_names <- c("Staff_Member","Account_Number","Series_Code","Participant_Number", "Badge_Position",
-                      "Period_Begin_Date", "Period_End_Date","YTD_Effective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv", "YTD_SDE"," Lifetime_DDE_mSv", 
+                      "Period_Begin_Date", "Period_End_Date","YTD_Effective_Doseective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv", "YTD_SDE"," Lifetime_DDE_mSv", 
                       "Lifetime_LDE", "Life_SDE", "Current DDE", "Current LDE", 
                       "Current SDE", "Nuetron","Department","Period")
     
@@ -272,7 +274,7 @@ server <- function(input, output, session) {
           # Create new table with the updated column names
           new_table <- data.frame(data[[i]][[key]])
           colnames(new_table) <- c("Staff_Member", "Account_Number", "Series_Code", "Participant_Number", "Badge_Position",
-                                   "Period_Begin_Date", "Period_End_Date", "YTD_Effective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv",
+                                   "Period_Begin_Date", "Period_End_Date", "YTD_Effective_Doseective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv",
                                    "YTD_SDE", "Lifetime_DDE_mSv", "Lifetime_LDE", "Life_SDE", "Current DDE", "Current LDE",
                                    "Current SDE", "Nuetron")
           
@@ -309,7 +311,7 @@ server <- function(input, output, session) {
         new_table$'Collar_DDE_temp' <- ifelse(new_table$'Badge_Position' == 'COLLAR', new_table$`Current DDE`, NA)
         new_table$Fetal_temp <- ifelse(new_table$'Badge_Position' == 'FETAL', new_table$`Current LDE`, NA)
         new_table$'Assign_Landauer_temp' <- ifelse(new_table$'Badge_Position' == 'Assign', new_table$`Current DDE`, NA)
-        new_table$Eff_temp <- ifelse(new_table$'Badge_Position' == 'CHEST', new_table$`Current DDE`, NA)
+        new_table$Effective_Dose_temp <- ifelse(new_table$'Badge_Position' == 'CHEST', new_table$`Current DDE`, NA)
         # Convert M to 0 for permanent columns
         new_table$Chest <- as.numeric(ifelse(new_table$Chest_temp == 'M', 0, as.character(new_table$Chest_temp)))
         new_table$Waist <- as.numeric(ifelse(new_table$Waist_temp == 'M', 0, as.character(new_table$Waist_temp)))
@@ -317,7 +319,7 @@ server <- function(input, output, session) {
         new_table$Collar_LDE <- as.numeric(ifelse(new_table$`Collar_LDE_temp` == 'M', 0, as.character(new_table$`Collar_LDE_temp`)))
         new_table$Fetal <- as.numeric(ifelse(new_table$Fetal_temp == 'M', 0, as.character(new_table$Fetal_temp)))
         new_table$Assign_Landauer <- as.numeric(ifelse(new_table$Assign_Landauer_temp == 'M', 0, as.character(new_table$Assign_Landauer_temp)))
-        new_table$Eff <- as.numeric(ifelse(new_table$Eff_temp == 'M', 0, as.character(new_table$Eff_temp)))
+        new_table$Effective_Dose <- as.numeric(ifelse(new_table$Effective_Dose_temp == 'M', 0, as.character(new_table$Effective_Dose_temp)))
         
         # Remove the Badge_Position column
         new_table <- new_table %>% select(-'Badge_Position')
@@ -332,9 +334,9 @@ server <- function(input, output, session) {
        
         # Fill null values in specific columns within each group
         columns_to_fill <- c(
-          "YTD_Effective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv", "YTD_SDE",
+          "YTD_Effective_Doseective_Dose_DDE_mSv", "YTD_Collar_Dose_LDE_mSv", "YTD_SDE",
           "Lifetime_DDE_mSv", "Lifetime_LDE", "Life_SDE",
-          "Chest", "Waist", "Collar_LDE","Collar_Calc", "Fetal", "Assign_Landauer", "Eff","Chest_temp","Waist_temp","Collar_LDE_temp","Fetal_temp","Eff_temp","Collar_DDE_temp","Assign_Landauer_temp"
+          "Chest", "Waist", "Collar_LDE","Collar_Calc", "Fetal", "Assign_Landauer", "Effective_Dose","Chest_temp","Waist_temp","Collar_LDE_temp","Fetal_temp","Effective_Dose_temp","Collar_DDE_temp","Assign_Landauer_temp"
         )
         for (col in columns_to_fill) {
           new_table[[col]] <- ave(new_table[[col]], new_table$'Participant_Number', new_table$Period, FUN = function(x) {
@@ -360,11 +362,11 @@ server <- function(input, output, session) {
           ) %>%
           ungroup()  # Remove the rowwise grouping
         
-        # Add a new column "Eff"
+        # Add a new column "Effective_Dose"
         new_table <- new_table %>%
           rowwise() %>%
           mutate(
-            `Eff` = if (is.na(Waist) & !is.na(Chest) & is.na(Collar_Calc)) {
+            `Effective_Dose` = if (is.na(Waist) & !is.na(Chest) & is.na(Collar_Calc)) {
               1*Chest
             } else if (!is.na(Waist) & is.na(Collar_Calc)& !is.na(Chest)) {
               1*Chest
@@ -387,7 +389,7 @@ server <- function(input, output, session) {
         new_table <- new_table %>% select(-'Collar_Calc')
         new_table <- new_table %>% select(-'Chest_temp')
         new_table <- new_table %>% select(-'Waist_temp')
-        new_table <- new_table %>% select(-'Eff_temp')
+        new_table <- new_table %>% select(-'Effective_Dose_temp')
         new_table <- new_table %>% select(-'Fetal_temp')
         new_table <- new_table %>% select(-'Collar_DDE_temp')
         new_table <- new_table %>% select(-'Collar_LDE_temp')
@@ -398,8 +400,8 @@ server <- function(input, output, session) {
         
         # Reorder columns with "Staff_Member" as the first column
         new_table <- new_table %>%
-          select('Staff_Member', 'Department', 'Hospital', 'Series_Code', 'Period','Chest','Waist','Collar_LDE','Fetal','Assign_Landauer','Assign_Calculated'
-                 ,'Eff', everything())
+          select('Staff_Member', 'Department', 'Hospital', 'Series_Code', 'Period','Chest','Waist','Collar_LDE','Fetal','Effective_Dose','Assign_Landauer','Assign_Calculated'
+                 , everything())
        
         # fix column "Participant_Number" with only the first 5 numbers
         new_table <- new_table %>%
